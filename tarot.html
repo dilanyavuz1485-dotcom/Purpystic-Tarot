@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purpystic Tarot</title>
+    <style>
+        /* GENEL SIFIRLAMA & AKIŞ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Georgia, serif;
+        }
+
+        html {
+            scroll-behavior: smooth; /* Menüye basınca yumuşak kayma efekti */
+        }
+
+        body {
+            /* Bilgisayarındaki özel arka plan resmi buraya bağlandı */
+            background-image: url("arkaplan.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #0b0514; /* Resim yüklenmezse devreye girecek mistik taban rengi */
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* HERO / ANA SAYFA */
+        .hero {
+            min-height: 100vh;
+            /* Yüklediğin arka planın üzerine yazıları okutabilmek için hafif bir karartma katmanı */
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85));
+        }
+
+        .overlay {
+            width: 100%;
+            height: 100%;
+            padding: 30px 80px;
+        }
+
+        /* SABİTÜST MENÜ (NAVBAR) */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            color: #d4af37;
+            font-size: 30px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: #d4af37;
+        }
+
+        /* HERO İÇERİK */
+        .hero-content {
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 70px;
+            color: #d4af37;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #d4af37;
+        }
+
+        .hero-content p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        /* ANA BUTON */
+        .hero-content button {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 40px;
+            background: #d4af37;
+            color: black;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .hero-content button:hover {
+            transform: scale(1.08);
+            background: white;
+            box-shadow: 0 0 25px white;
+        }
+
+        /* ------------------------------------- */
+        /* BÖLÜM (SECTION) ORTAK AYARLARI */
+        /* ------------------------------------- */
+        .section-padding {
+            padding: 90px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-title {
+            font-size: 38px;
+            color: #d4af37;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+        }
+
+        /* FAL SONUÇ ALANI */
+        #result {
+            background: rgba(15, 8, 25, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 950px;
+            color: white;
+            box-shadow: 0 0 30px #d4af37;
+            border: 1px solid #d4af37;
+            display: none; 
+            margin-top: 30px;
+            animation: fadeInArea 0.8s ease-in-out;
+        }
+
+        /* KARTLARIN YAN YANA DİZİLİMİ */
+        .cards-container {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .card-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 220px;
+        }
+
+        .card-box h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+
+        /* 3D DÖNDÜRME ALANI */
+        .flip-container {
+            perspective: 1000px;
+            width: 150px;
+            height: 260px;
+            cursor: pointer;
+        }
+
+        .flipper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flipper.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .front {
+            background: #1a0f2e;
+            background-image: radial-gradient(circle, #4a2574 20%, transparent 20%),
+                              radial-gradient(circle, #4a2574 20%, transparent 20%);
+            background-size: 12px 12px;
+            background-position: 0 0, 6px 6px;
+            z-index: 2;
+            transform: rotateY(0deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .front::after {
+            content: "🔮";
+            font-size: 24px;
+            opacity: 0.7;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+        }
+
+        .back img {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        /* KART YORUMLARI METİN ALANI */
+        .readings-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            border-top: 1px dashed rgba(214, 175, 55, 0.4);
+            padding-top: 20px;
+            text-align: left;
+        }
+
+        .reading-text {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #d4af37;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: 0.5s ease-in-out;
+        }
+
+        .reading-text.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reading-text h4 {
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+
+        /* ------------------------------------- */
+        /* HAKKINDA BÖLÜMÜ */
+        /* ------------------------------------- */
+        #hakkinda {
+            background: rgba(18, 9, 33, 0.85);
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .about-content {
+            max-width: 800px;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #e0d5ed;
+        }
+
+        /* ------------------------------------- */
+        /* İLETİŞİM BÖLÜMÜ */
+        /* ------------------------------------- */
+        #iletisim {
+            background: rgba(11, 5, 20, 0.9);
+        }
+
+        /* Mail adresi gösterim kutusu */
+        .mail-box {
+            background: rgba(26, 15, 46, 0.8);
+            border: 1px dashed #d4af37;
+            padding: 15px 30px;
+            border-radius: 30px;
+            margin-bottom: 25px;
+            font-size: 18px;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+            transition: 0.3s;
+        }
+
+        .mail-box:hover {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            border-style: solid;
+        }
+
+        .mail-box a {
+            color: #d4af37;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .mail-box a:hover {
+            color: white;
+            text-shadow: 0 0 10px #d4af37;
+        }
+
+        .contact-form {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(25, 15, 40, 0.6);
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .contact-form input:focus, .contact-form textarea:focus {
+            box-shadow: 0 0 10px #d4af37;
+            background: rgba(25, 15, 40, 0.9);
+        }
+
+        .contact-form button {
+            padding: 12px;
+            background: #d4af37;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .contact-form button:hover {
+            background: white;
+            box-shadow: 0 0 15px white;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: #07030d;
+            color: #77658c;
+            font-size: 14px;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        @keyframes fadeInArea {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 768px) {
+            .readings-container { grid-template-columns: 1fr; }
+            .overlay { padding: 20px; }
+            .hero-content h1 { font-size: 45px; }
+            nav ul { display: none; } /* Mobilde menü taşmasın diye gizledik */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ANA SAYFA -->
+    <header class="hero" id="anasayfa">
+        <div class="overlay">
+            <nav>
+                <h2 class="logo">🔮 Purpystic Tarot</h2>
+                <ul>
+                    <li><a href="#anasayfa">Ana Sayfa</a></li>
+                    <li><a href="#acilim">Kart Açılımı</a></li>
+                    <li><a href="#hakkinda">Hakkında</a></li>
+                    <li><a href="#iletisim">İletişim</a></li>
+                </ul>
+            </nav>
+
+            <div class="hero-content">
+                <h1>PURPYSTIC TAROT</h1>
+                <p>Geçmişini, bugününü ve geleceğini keşfet.</p>
+                <button onclick="document.getElementById('acilim').scrollIntoView({behavior: 'smooth'})">Kart Açılımı Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- KART AÇILIMI BÖLÜMÜ -->
+    <section class="section-padding" id="acilim">
+        <h2 class="section-title">🔮 3 Kart Açılımı</h2>
+        <button id="drawBtn" style="padding: 15px 40px; font-size: 18px; border: none; border-radius: 40px; background: #d4af37; color: black; cursor: pointer; font-weight: bold; transition: 0.3s; box-shadow: 0 0 15px rgba(212,175,55,0.4);">3 Kart Açılımı Yap</button>
+
+        <div id="result">
+            <div class="cards-container" id="cardsContainer"></div>
+            <div class="readings-container" id="readingsContainer"></div>
+        </div>
+    </section>
+
+    <!-- HAKKINDA BÖLÜMÜ -->
+    <section class="section-padding" id="hakkinda">
+        <h2 class="section-title">✨ Purpystic Hakkında</h2>
+        <div class="about-content">
+            <p>
+                Purpystic Tarot, kadim sembollerin ışığında ruhunuza ayna tutmak için tasarlandı. 
+                Geliştirdiğimiz bu dijital kehanet alanı, 22 Büyük Arkana kartının mistik enerjisini modern web teknolojileriyle buluşturuyor. 
+                Burada aldığınız her cevap, aslında kendi iç sesinizin ve evrenin size fısıldadığı doğruların birer yansımasıdır. 
+                Zihninizdeki soruları serbest bırakın ve kartların bilgeliğine güvenin.
+            </p>
+        </div>
+    </section>
+
+    <!-- İLETİŞİM BÖLÜMÜ -->
+    <section class="section-padding" id="iletisim">
+        <h2 class="section-title">✉️🔮 İletişim</h2>
+        
+        <!-- Gmail Yönlendirmeli Mail Alanı -->
+        <div class="mail-box">
+            ✨ Doğrudan Bağlantı: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=dilanyavuz1485@gmail.com" target="_blank">dilanyavuz1485@gmail.com</a>
+        </div>
+
+        <!-- HEM MAİL GÖNDEREN HEM DE UYARI VEREN AKILLI FORM -->
+        <form class="contact-form" id="mysticForm" action="https://formspree.io/f/xvzybndk" method="POST">
+            <input type="text" name="Ad Soyad" placeholder="Adınız" required>
+            <input type="email" name="E-posta" placeholder="E-posta Adresiniz" required>
+            <textarea name="Mesaj" rows="5" placeholder="Sorunuz veya Mesajınız..." required></textarea>
+            
+            <button type="submit" id="submitBtn">Evrene Gönder</button>
+        </form>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        &copy; 2026 Purpystic Tarot - Tüm Hakları Saklıdır. | Mistik Yazılım Projesi
+    </footer>
+
+    <!-- JAVASCRIPT KODLARI -->
+    <script>
+        const tarotDeck = [
+            { name: "0 - The Fool (Deli / Mecnun)", meaning: "Yepyeni ve plansız başlangıçlar, risk alma, saf inanç ve özgürlük dönemi.", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
+            { name: "I - The Magician (Büyücü)", meaning: "Yeteneklerin açığa çıkması, odaklanma gücü, isteklerini gerçeğe dönüştürme potansiyeli.", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
+            { name: "II - The High Priestess (Azize)", meaning: "Güçlü sezgiler, gizem, bilinçaltının konuşması ve sabırla bekleme dönemi.", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg" },
+            { name: "III - The Empress (İmparatoriçe)", meaning: "Bolluk, bereket, yaratıcılık, doğa ile bağ kurma ve şefkatli büyüme.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg" },
+            { name: "IV - The Emperor (İmparator)", meaning: "Otorite, düzen, mantık, finansal veya yönetsel istikrar ve koruma gücü.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/RWS_Tarot_04_Emperor.jpg/960px-RWS_Tarot_04_Emperor.jpg" },
+            { name: "V - The Hierophant (Aziz / Peder)", meaning: "Gelenekler, ruhsal rehberlik, eğitim, kurallara uyma ve inanç dünyası.", image: "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg" },
+            { name: "VI - The Lovers (Aşıklar)", meaning: "Önemli seçimler, ilişkilerde uyum, kalbin sesini dinleme ve büyük kararlar.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/RWS_Tarot_06_Lovers.jpg/960px-RWS_Tarot_06_Lovers.jpg" },
+            { name: "VII - The Chariot (Araba)", meaning: "Zafer, kararlılık, zorlukların üstesinden gelme ve kontrolü ele alma.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg" },
+            { name: "VIII - Strength (Güç)", meaning: "İçsel güç, sabır, şefkatle gelen cesaret ve dürtüleri kontrol etme başarısı.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg" },
+            { name: "IX - The Hermit (Ermiş)", meaning: "İçsel yolculuk, yalnızlık ihtiyacı, bilgelik arayışı ve derin düşünme.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg" },
+            { name: "X - Wheel of Fortune (Kader Çarkı)", meaning: "Kaderin dönmesi, şans, beklenmedik değişimler ogün hayatın yeni döngüsü.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg" },
+            { name: "XI - Justice (Adalet)", meaning: "Dürüstlük, hak edilenin alınması, sebep-sonuç ilişkileri ve hukuki/mantıksal kararlar.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg" },
+            { name: "XII - The Hanged Man (Asılan Adam)", meaning: "Olaylara farklı perspektiften bakma, fedakarlık, duraklama ve teslimiyet.", image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg" },
+            { name: "XIII - Death (Ölüm)", meaning: "Korkulmamalıdır; eski bir dönemin bitişi, kaçınılmaz dönüşüm ve yeniden doğuş.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg" },
+            { name: "XIV - Temperance (Denge)", meaning: "Uyum, ölçülü olmak, sabır, zıtlıkları birleştirme ve ruhsal huzur.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg" },
+            { name: "XV - The Devil (Şeytan)", meaning: "Maddi dünyaya bağımlılık, takıntılar, korkularla yüzleşme ve zincirleri kırma vakti.", image: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg" },
+            { name: "XVI - The Tower (Yıkılan Kule)", meaning: "Ani sarsıcı değişimler, eski tabuların yıkılması ve ardından gelecek özgürlük.", image: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg" },
+            { name: "XVII - The Star (Yıldız)", meaning: "Umut, şifa, geleceğe duyulan güven, ilham ve karanlık günlerin sonu.", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg" },
+            { name: "XVIII - The Moon (Ay)", meaning: "İllüzyonlar, belirsizlikler, sırlar ve yüzeye çıkan bilinçaltı korkuları.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/The_Moon%2C_Waite-Smith_Tarot_Deck%2C_Yale_University.jpg/960px-The_Moon%2C_Waite-Smith_Tarot_Deck%2C_Yale_University.jpg" },
+            { name: "XIX - The Sun (Güneş)", meaning: "Büyük başarı, neşe, canlılık, netlik, özgüven ve parıldama dönemi.", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg" },
+            { name: "XX - Judgement (Mahkeme / Uyanış)", meaning: "Geçmişin değerlendirilmesi, içsel uyanış, çağrıya kulak verme ve kefaret.", image: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg" },
+            { name: "XXI - The World (Dünya)", meaning: "Bir döngünün başarıyla tamamlanması, bütünlük, zafer ve küresel başarı.", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg" }
+        ];
+
+        const button = document.getElementById("drawBtn");
+        const result = document.getElementById("result");
+        const cardsContainer = document.getElementById("cardsContainer");
+        const readingsContainer = document.getElementById("readingsContainer");
+
+        // Bilgisayarındaki özel ses dosyasının yolu buraya bağlandı
+        const flipSound = new Audio("magic.mp3");
+
+        button.addEventListener("click", () => {
+            const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
+            const selectedCards = shuffled.slice(0, 3); 
+            const periods = ["Geçmiş", "Şimdi", "Gelecek"];
+
+            cardsContainer.innerHTML = "";
+            readingsContainer.innerHTML = "";
+            result.style.display = "block";
+
+            selectedCards.forEach((card, index) => {
+                const cardBox = document.createElement("div");
+                cardBox.className = "card-box";
+                cardBox.innerHTML = `
+                    <h3>${periods[index]}</h3>
+                    <div class="flip-container" data-index="${index}">
+                        <div class="flipper" id="flipper-${index}">
+                            <div class="front"></div>
+                            <div class="back">
+                                <img src="${card.image}" alt="${card.name}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(cardBox);
+
+                const readingText = document.createElement("div");
+                readingText.className = "reading-text";
+                readingText.id = `reading-${index}`;
+                readingText.innerHTML = `
+                    <h4>${card.name}</h4>
+                    <p>${card.meaning}</p>
+                `;
+                readingsContainer.appendChild(readingText);
+
+                const flipContainer = cardBox.querySelector(".flip-container");
+                flipContainer.addEventListener("click", () => {
+                    const flipper = document.getElementById(`flipper-${index}`);
+                    const textZone = document.getElementById(`reading-${index}`);
+
+                    if (!flipper.classList.contains("flipped")) {
+                        flipSound.currentTime = 0;
+                        flipSound.play();
+
+                        flipper.classList.add("flipped");
+                        
+                        setTimeout(() => {
+                            textZone.classList.add("show");
+                        }, 400);
+                    }
+                });
+            });
+
+            result.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // -------------------------------------------------------------
+        // ARKA PLANDA MAİL GÖNDERME VE YILDIZLAR UYARISI SİHİRBAZI
+        // -------------------------------------------------------------
+        const mysticForm = document.getElementById("mysticForm");
+        const submitBtn = document.getElementById("submitBtn");
+
+        mysticForm.addEventListener("submit", function(event) {
+            event.preventDefault(); // Sayfa yenilenmesini engelle
+            
+            submitBtn.textContent = "Bağlantı kuruluyor...";
+            submitBtn.disabled = true;
+
+            // Verileri arka planda Formspree'ye gönder
+            const formData = new FormData(mysticForm);
+            
+            fetch(mysticForm.action, {
+                method: "POST",
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Mesajınız yıldızlara iletildi! 🔮"); // İstediğin uyarı penceresi
+                    mysticForm.reset(); // Kutuları temizle
+                } else {
+                    alert("Mistik bağ kurulamadı, lütfen tekrar deneyin.");
+                }
+            })
+            .catch(error => {
+                alert("Bir hata oluştu, enerji akışı kesildi.");
+            })
+            .finally(() => {
+                submitBtn.textContent = "Evrene Gönder";
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
