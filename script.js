@@ -87,7 +87,7 @@
         });
 
         // -------------------------------------------------------------
-        // ARKA PLANDA MAİL GÖNDERME VE YILDIZLAR UYARISI SİHİRBAZI
+        // ARKA PLANDA MAİL GÖNDERME 
         // -------------------------------------------------------------
         const mysticForm = document.getElementById("mysticForm");
         const submitBtn = document.getElementById("submitBtn");
@@ -108,17 +108,17 @@
             })
             .then(response => {
                 if (response.ok) {
-                    alert("Mesajınız yıldızlara iletildi! 🔮"); // İstediğin uyarı penceresi
+                    alert("Mesajınız iletildi, ilginiz için teşekkürler!"); // İstediğin uyarı penceresi
                     mysticForm.reset(); // Kutuları temizle
                 } else {
-                    alert("Mistik bağ kurulamadı, lütfen tekrar deneyin.");
+                    alert("Lütfen tekrar deneyin.");
                 }
             })
             .catch(error => {
-                alert("Bir hata oluştu, enerji akışı kesildi.");
+                alert("Bir hata oluştu.");
             })
             .finally(() => {
-                submitBtn.textContent = "Evrene Gönder";
+                submitBtn.textContent = "Mesajını Evrene Gönder";
                 submitBtn.disabled = false;
             });
         });
